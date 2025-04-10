@@ -1,2 +1,2 @@
-# Workspace_OS
- btl os 242
+# BTL_OS
+Repo chung cho nhóm làm BTL môn OS
