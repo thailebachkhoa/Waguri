@@ -5,6 +5,9 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h> // alloc/free
+#include <string.h> // strcmp
+
 
 #ifndef OSCFG_H
 #include "os-cfg.h"
