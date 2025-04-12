@@ -33,3 +33,4 @@ redo: xong quay lại bước ready
 queue.c: enqueue and dequeue, xóa process 
 get_proc: lấy process từ hàng đợi
 
+link: https://github.com/Phamminh19/OS_BTL_242.git

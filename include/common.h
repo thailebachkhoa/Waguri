@@ -5,6 +5,8 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h> // để dùng strcmp()
+#include <stdlib.h> // để dùng free()
 
 #ifndef OSCFG_H
 #include "os-cfg.h"

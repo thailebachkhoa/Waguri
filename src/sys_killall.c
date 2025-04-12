@@ -13,8 +13,7 @@
 #include "stdio.h"
 #include "libmem.h"
 #include "queue.h"
-#include <string.h> // để dùng strcmp()
-#include <stdlib.h> // để dùng free()
+
 int __sys_killall(struct pcb_t *caller, struct sc_regs *regs)
 {
     char proc_name[100];
