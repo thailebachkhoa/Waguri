@@ -33,7 +33,7 @@ int queue_empty(void)
 void init_scheduler(void)
 {
 #ifdef MLQ_SCHED
-	for (i = 0; i < MAX_PRIO; i++)
+	for (int i = 0; i < MAX_PRIO; i++)
 	{
 		mlq_ready_queue[i].size = 0; // Khởi tạo kích thước hàng đợi
 		slot[i] = MAX_PRIO - i;		 // Ưu tiên cao được cấp nhiều slot hơn
