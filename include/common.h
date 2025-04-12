@@ -24,7 +24,7 @@
 #define NUM_PAGES (1 << (ADDRESS_SIZE - OFFSET_LEN))
 #define PAGE_SIZE (1 << OFFSET_LEN)
 
-enum ins_opcode_t 
+enum ins_opcode_t
 {
 	CALC,  // Just perform calculation, only use CPU
 	ALLOC, // Allocate memory
@@ -34,8 +34,8 @@ enum ins_opcode_t
 	SYSCALL,
 };
 
-/* instructions executed by the CPU */ 
-struct inst_t // information of action to do
+/* instructions executed by the CPU */
+struct inst_t
 {
 	enum ins_opcode_t opcode;
 	uint32_t arg_0; // Argument lists for instructions
@@ -44,13 +44,13 @@ struct inst_t // information of action to do
 	uint32_t arg_3;
 };
 
-struct code_seg_t 
+struct code_seg_t
 {
-	struct inst_t *text; // Code segment, list of instructions -> code segment
-	uint32_t size; // Size 
+	struct inst_t *text;
+	uint32_t size;
 };
 
-struct trans_table_t 
+struct trans_table_t
 {
 	/* A row in the page table of the second layer */
 	struct
@@ -82,9 +82,8 @@ struct pcb_t
 	struct code_seg_t *code; // Code segment
 	addr_t regs[10];	 // Registers, store address of allocated regions
 	uint32_t pc;		 // Program pointer, point to the next instruction
-	struct queue_t *ready_queue; // Ready queue, list of processes
-	struct queue_t *running_list; // Running list, list of processes
-
+	struct queue_t *ready_queue;
+	struct queue_t *running_list;
 #ifdef MLQ_SCHED
 	struct queue_t *mlq_ready_queue;
 	// Priority on execution (if supported), on-fly aka. changeable
@@ -98,9 +97,8 @@ struct pcb_t
 	struct memphy_struct *active_mswp;
 	uint32_t active_mswp_id;
 #endif
-
 	struct page_table_t *page_table; // Page table
-	uint32_t bp;			         // Break pointer
+	uint32_t bp;			 // Break pointer
 };
 
 #endif

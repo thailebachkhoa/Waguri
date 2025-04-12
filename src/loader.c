@@ -13,7 +13,6 @@ static uint32_t avail_pid = 1;
 #define OPT_WRITE	"write"
 #define OPT_SYSCALL	"syscall"
 
-// Opcode enum
 static enum ins_opcode_t get_opcode(char * opt) {
 	if (!strcmp(opt, OPT_CALC)) {
 		return CALC;
@@ -33,7 +32,6 @@ static enum ins_opcode_t get_opcode(char * opt) {
 	}
 }
 
-// Load process from file
 struct pcb_t * load(const char * path) {
 	/* Create new PCB for the new process */
 	struct pcb_t * proc = (struct pcb_t * )malloc(sizeof(struct pcb_t));
