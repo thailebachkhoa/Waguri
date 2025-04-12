@@ -158,12 +158,28 @@ int MEMPHY_get_freefp(struct memphy_struct *mp, int *retfpn)
    return 0;
 }
 
-int MEMPHY_dump(struct memphy_struct *mp)
+int MEMPHY_dump(struct memphy_struct *mp) // checkout
 {
   /*TODO dump memphy contnt mp->storage
    *     for tracing the memory content
    */
-  
+#ifdef SYNC
+  pthread_mutex_lock(&MEM_in_use);
+#endif
+  printf("\n");
+  printf("Print content of RAM (only print nonzero value)\n");
+  for (int i = 0; i < mp->maxsz; i++)
+  {
+    if (mp->storage[i] != 0)
+    {
+      printf("---------------------------------\n");
+      printf("Address 0x%08x: %d\n", i, mp->storage[i]);
+    }
+  }
+  printf("---------------------------------\n");
+#ifdef SYNC
+  pthread_mutex_unlock(&MEM_in_use);
+#endif
    return 0;
 }
 

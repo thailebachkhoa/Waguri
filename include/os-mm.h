@@ -4,12 +4,14 @@
 
 #define MM_PAGING
 #define PAGING_MAX_MMSWP 4 /* max number of supported swapped space */
-#define PAGING_MAX_SYMTBL_SZ 30
+#define PAGING_MAX_SYMTBL_SZ 30 // max number of supported symbol table
 
 typedef char BYTE;
 typedef uint32_t addr_t;
 //typedef unsigned int uint32_t;
 
+
+////// Virtual memory mapping 2.2.1 //////////
 struct pgn_t{
    int pgn;
    struct pgn_t *pg_next; 
@@ -32,7 +34,6 @@ struct vm_area_struct {
    unsigned long vm_id;
    unsigned long vm_start;
    unsigned long vm_end;
-
    unsigned long sbrk;
 /*
  * Derived field
@@ -40,11 +41,12 @@ struct vm_area_struct {
  */
    struct mm_struct *vm_mm;
    struct vm_rg_struct *vm_freerg_list;
-   struct vm_area_struct *vm_next;
+
+   struct vm_area_struct *vm_next; // next area
 };
 
 /* 
- * Memory management struct
+ * Memory mappping struct
  */
 struct mm_struct {
    uint32_t *pgd;
@@ -57,6 +59,15 @@ struct mm_struct {
    /* list of free page */
    struct pgn_t *fifo_pgn;
 };
+
+/// virtual memory mapping /////////////////////////
+
+
+
+
+
+
+////////////////////// Physical memory management ////////////////////////
 
 /*
  * FRAME/MEM PHY struct
@@ -83,4 +94,5 @@ struct memphy_struct {
    struct framephy_struct *used_fp_list;
 };
 
+///////////////////////////// Virtual memory management ////////////////////////
 #endif
