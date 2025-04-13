@@ -13,7 +13,8 @@
 #include "stdio.h"
 #include "libmem.h"
 #include "queue.h"
-
+#include <string.h> // để dùng strcmp()
+#include <stdlib.h> // để dùng free()
 int __sys_killall(struct pcb_t *caller, struct sc_regs *regs)
 {
     char proc_name[100];
@@ -46,20 +47,12 @@ int __sys_killall(struct pcb_t *caller, struct sc_regs *regs)
      *       all processes with given
      *        name in var proc_name
      */
-    int count = 0;
     struct queue_t *running_list = caller->running_list;
-    struct pcb_t *temp_proc;
-    if (running_list == NULL)
-    {
-        printf("No process in running_list\n");
-        return 0;
-    }
-    // Check process in running_list
-    printf("Checking process in running_list\n");
+    struct queue_t *mlq_ready_queue = caller->mlq_ready_queue;
+    struct queue_t *ready_queue = caller->ready_queue;
     for (int i = 0; i < running_list->size; i++)
     {
-        temp_proc = running_list->proc[i];
-        if ( temp_proc != NULL &&strcmp(temp_proc->path, proc_name) == 0)
+        if (strcmp(running_list->proc[i]->path, proc_name) == 0)
         {
             printf("Terminate process %s\n", running_list->proc[i]->path);
             free(running_list->proc[i]);
@@ -69,15 +62,8 @@ int __sys_killall(struct pcb_t *caller, struct sc_regs *regs)
                 running_list->proc[j] = running_list->proc[j + 1];
             }
             running_list->proc[running_list->size] = NULL;
-            count++;
         }
     }
-
-    #ifdef MLQ_SCHED
-    struct queue_t *mlq_ready_queue = caller->mlq_ready_queue;
-    struct queue_t *ready_queue = caller->ready_queue;
-    // Check process in mlq_ready_queue
-    printf("Checking process in mlq_ready_queue\n");
     for (int i = 0; i < mlq_ready_queue->size; i++)
     {
         if (strcmp(mlq_ready_queue->proc[i]->path, proc_name) == 0)
@@ -90,11 +76,8 @@ int __sys_killall(struct pcb_t *caller, struct sc_regs *regs)
                 mlq_ready_queue->proc[j] = mlq_ready_queue->proc[j + 1];
             }
             mlq_ready_queue->proc[mlq_ready_queue->size] = NULL;
-            count++;
         }
     }
-    // Check process in ready_queue ???
-    printf("Checking process in ready_queue\n");
     for (int i = 0; i < ready_queue->size; i++)
     {
         if (strcmp(ready_queue->proc[i]->path, proc_name) == 0)
@@ -107,10 +90,7 @@ int __sys_killall(struct pcb_t *caller, struct sc_regs *regs)
                 ready_queue->proc[j] = ready_queue->proc[j + 1];
             }
             ready_queue->proc[ready_queue->size] = NULL;
-            count ++;
         }
     }
-    printf("Total %d processes terminated\n", count);
-    #endif
-    return count;
+    return 0;
 }
