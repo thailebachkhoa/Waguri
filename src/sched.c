@@ -152,13 +152,13 @@
 // }
 // #endif
 
-#include "../include/queue.h" //fix the include from original file: "queue.h" and "sched.h"
-#include "../include/sched.h"
+#include "queue.h"
+#include "sched.h"
 #include <pthread.h>
 
 #include <stdlib.h>
 #include <stdio.h>
-static struct queue_t ready_queue; // static queue is initialized to 0 for variables and NULL for pointers
+static struct queue_t ready_queue;
 static struct queue_t run_queue;
 static pthread_mutex_t queue_lock;
 
@@ -204,55 +204,44 @@ void init_scheduler(void)
  */
 struct pcb_t *get_mlq_proc(void)
 {
-	//This implementation with slot makes the process with lower priority to have a chance to run first.
-	// it should not be that case, so we need to change the implementation
 	struct pcb_t *proc = NULL;
 	/*TODO: get a process from PRIORITY [ready_queue].
 	 * Remember to use lock to protect the queue.
 	 * */
 	pthread_mutex_lock(&queue_lock);
-	for (int i = 0; i < MAX_PRIO; i++)
+
+	// Check from the mlq ready queue and take the first available process
+	for (int priority_index = 0; priority_index < MAX_PRIO; priority_index++)
 	{
-		if (!empty(&mlq_ready_queue[i]))
+		if (slot[priority_index] > 0 && !empty(&mlq_ready_queue[priority_index]))
 		{
-			proc = dequeue(&mlq_ready_queue[i]);
-			slot[i]--;
-			if(slot[i] <= 0)
-			{
-				slot[i] = MAX_PRIO - i;
-			}
-			break;
+			proc = dequeue(&mlq_ready_queue[priority_index]); // Retrieve a process from the mlq ready queue
+			slot[priority_index]--;							  // Decrease the slot for the current priority
+			break;											  //  break out of the loop if a process is found
+		}
+	}
+	if (proc == NULL)
+	{
+		for (int priority_index = 0; priority_index < MAX_PRIO; priority_index++)
+		{
+			slot[priority_index] = MAX_PRIO - priority_index; // Reset the slot for each priority
 		}
 	}
 	pthread_mutex_unlock(&queue_lock);
-	return proc;
-	// struct pcb_t *proc = NULL;
-    // pthread_mutex_lock(&queue_lock);
-    // for (int i = 0; i < MAX_PRIO; i++) // Start from highest priority
-    // {
-    //     if (!empty(&mlq_ready_queue[i]))
-    //     {
-    //         proc = dequeue(&mlq_ready_queue[i]);
-    //         break; // Dispatch the first process found at the highest priority
-    //     }
-    // }
-    // pthread_mutex_unlock(&queue_lock);
-    // return proc;
+	return proc; // No process found
 }
 
 void put_mlq_proc(struct pcb_t *proc)
 {
 	pthread_mutex_lock(&queue_lock);
-	uint32_t prio = proc->prio;
-	enqueue(&mlq_ready_queue[prio], proc);
+	enqueue(&mlq_ready_queue[proc->prio], proc);
 	pthread_mutex_unlock(&queue_lock);
 }
 
 void add_mlq_proc(struct pcb_t *proc)
 {
 	pthread_mutex_lock(&queue_lock);
-	uint32_t prio = proc->prio;
-	enqueue(&mlq_ready_queue[prio], proc);
+	enqueue(&mlq_ready_queue[proc->prio], proc);
 	pthread_mutex_unlock(&queue_lock);
 }
 
@@ -269,7 +258,7 @@ void put_proc(struct pcb_t *proc)
 
 	/* TODO: put running proc to running_list */
 	pthread_mutex_lock(&queue_lock);
-	enqueue(&running_list, proc);
+	enqueue(&running_list, proc); // Add the running process to the running list
 	pthread_mutex_unlock(&queue_lock);
 
 	return put_mlq_proc(proc);
@@ -282,9 +271,8 @@ void add_proc(struct pcb_t *proc)
 	proc->running_list = &running_list;
 
 	/* TODO: put running proc to running_list */
-
 	pthread_mutex_lock(&queue_lock);
-	enqueue(&running_list, proc);
+	enqueue(&running_list, proc); // Add the process to the running list
 	pthread_mutex_unlock(&queue_lock);
 
 	return add_mlq_proc(proc);
@@ -296,39 +284,42 @@ struct pcb_t *get_proc(void)
 	/*TODO: get a process from [ready_queue].
 	 * Remember to use lock to protect the queue.
 	 * */
-	// implement using round-robin without priority (will check later)
 	pthread_mutex_lock(&queue_lock);
 	if (!empty(&ready_queue))
-	{
-		proc = dequeue(&ready_queue);
-	}
+		proc = dequeue(&ready_queue); // Retrieve a process from the ready queue
 	pthread_mutex_unlock(&queue_lock);
+
 	return proc;
 }
 
 void put_proc(struct pcb_t *proc)
-{
+{ // Put a process back to the scheduler
 	proc->ready_queue = &ready_queue;
 	proc->running_list = &running_list;
+	proc->mlq_ready_queue = mlq_ready_queue;
 
 	/* TODO: put running proc to running_list */
+	pthread_mutex_lock(&queue_lock);
+	enqueue(&running_list, proc); // Add the running process to the running list
+	pthread_mutex_unlock(&queue_lock);
 
 	pthread_mutex_lock(&queue_lock);
-	enqueue(&running_list, proc); // Add the process to the running list
-	enqueue(&run_queue, proc);
-	pthread_mutex_unlock(&queue_lock);
+	enqueue(&run_queue, proc)
+		pthread_mutex_unlock(&queue_lock);
 }
 
 void add_proc(struct pcb_t *proc)
-{
+{ // Add a process to the scheduler
 	proc->ready_queue = &ready_queue;
 	proc->running_list = &running_list;
 
 	/* TODO: put running proc to running_list */
-
 	pthread_mutex_lock(&queue_lock);
 	enqueue(&running_list, proc); // Add the process to the running list
-	enqueue(&run_queue, proc);
+	pthread_mutex_unlock(&queue_lock);
+
+	pthread_mutex_lock(&queue_lock);
+	enqueue(&ready_queue, proc);
 	pthread_mutex_unlock(&queue_lock);
 }
 #endif
