@@ -39,10 +39,10 @@ struct vm_area_struct {
  * Derived field
  * unsigned long vm_limit = vm_end - vm_start
  */
-   struct mm_struct *vm_mm;
-   struct vm_rg_struct *vm_freerg_list;
+   struct mm_struct *vm_mm;           // role: vars of human code, the top emty of meme
+   struct vm_rg_struct *vm_freerg_list; // -> free slot
 
-   struct vm_area_struct *vm_next; // next area
+   struct vm_area_struct *vm_next; // sbrk -> end
 };
 
 /* 

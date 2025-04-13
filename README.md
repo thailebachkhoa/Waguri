@@ -34,3 +34,6 @@ queue.c: enqueue and dequeue, xóa process
 get_proc: lấy process từ hàng đợi
 
 link: https://github.com/Phamminh19/OS_BTL_242.git
+
+
+fix syscall and syscall.tbl

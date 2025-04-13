@@ -24,9 +24,8 @@ struct sc_regs {
          * - error_code stored by the CPU on traps and exceptions
          * - the interrupt number for device interrupts
          */
-        uint32_t orig_ax;
-
-        int32_t flags;
+        uint32_t orig_ax; // syscall number
+        int32_t flags;    // flags
 };
 
 
