@@ -48,10 +48,12 @@ int __sys_killall(struct pcb_t *caller, struct sc_regs *regs)
      */
     int count = 0;
     struct queue_t *running_list = caller->running_list;
-    struct queue_t *mlq_ready_queue = caller->mlq_ready_queue;
-    struct queue_t *ready_queue = caller->ready_queue;
     struct pcb_t *temp_proc;
-    
+    if (running_list == NULL)
+    {
+        printf("No process in running_list\n");
+        return 0;
+    }
     // Check process in running_list
     printf("Checking process in running_list\n");
     for (int i = 0; i < running_list->size; i++)
@@ -70,6 +72,10 @@ int __sys_killall(struct pcb_t *caller, struct sc_regs *regs)
             count++;
         }
     }
+
+    #ifdef MLQ_SCHED
+    struct queue_t *mlq_ready_queue = caller->mlq_ready_queue;
+    struct queue_t *ready_queue = caller->ready_queue;
     // Check process in mlq_ready_queue
     printf("Checking process in mlq_ready_queue\n");
     for (int i = 0; i < mlq_ready_queue->size; i++)
@@ -105,5 +111,6 @@ int __sys_killall(struct pcb_t *caller, struct sc_regs *regs)
         }
     }
     printf("Total %d processes terminated\n", count);
+    #endif
     return count;
 }

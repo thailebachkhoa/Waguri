@@ -7,7 +7,7 @@ int empty(struct queue_t *q)
         if (q == NULL)
         {
                 printf("Queue is NULL\n");
-                return 0;
+                return 1;
         }
         return (q->size == 0);
 }
@@ -15,7 +15,7 @@ int empty(struct queue_t *q)
 void enqueue(struct queue_t *q, struct pcb_t *proc)
 {
         /* TODO: put a new process to queue [q] */
-        if (q->size < MAX_QUEUE_SIZE) q->proc[q->size++] = proc;
+        if ( q != 0 || proc != 0 ||q->size < MAX_QUEUE_SIZE) q->proc[q->size++] = proc;
         else printf("Fail to enqueue process %s\n", proc->path);
 }
 
