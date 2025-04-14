@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "syscall.h": "c",
+        "mm.h": "c",
+        "libmem.h": "c",
+        "common.h": "c"
+    }
+}
