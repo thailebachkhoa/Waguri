@@ -7,7 +7,7 @@
 #define MAX_QUEUE_SIZE 10
 
 struct queue_t {
-	struct pcb_t * proc[MAX_QUEUE_SIZE];
+	struct pcb_t * proc[MAX_QUEUE_SIZE]; // list of processes
 	int size;
 };
 
