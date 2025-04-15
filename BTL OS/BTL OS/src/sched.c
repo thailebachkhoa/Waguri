@@ -5,8 +5,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#typedef unsigned long ulong;
-
 static struct queue_t ready_queue;
 static struct queue_t run_queue;
 static pthread_mutex_t queue_lock;
@@ -126,10 +124,8 @@ struct pcb_t *get_proc(void)
 	 * Remember to use lock to protect the queue.
 	 * */
 	pthread_mutex_lock(&queue_lock);
-	if (!empty(&ready_queue))
-	{
-		proc = dequeue(&ready_queue);
-	}
+	// if (!empty(&ready_queue))
+	proc = dequeue(&ready_queue);
 	pthread_mutex_unlock(&queue_lock);
 	return proc;
 }
