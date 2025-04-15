@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "queue.h"
-
+#include <pthread.h>
 // mutex lock
 pthread_mutex_t queue_lock;
 
