@@ -11,7 +11,7 @@
 #include "common.h"
 #include "syscall.h"
 #include "stdio.h"
-#include "libmem.h" //add free_pcb_memphy in libmem.h
+#include "libmem.h"
 
 #include "queue.h"
 #include <string.h>
@@ -50,76 +50,72 @@ int __sys_killall(struct pcb_t *caller, struct sc_regs *regs)
      */
 
     int count = 0;
-
-    /* Find and terminate processes in the running list */
-    if (caller->running_list != NULL)
+    // execption handling
+    if (caller->running_list == NULL)
     {
-        struct queue_t *run_list = caller->running_list;
-        for (i = 0; i < run_list->size; i++)
+        printf("No running list found.\n");
+        return -1; // Error: No running list
+    }
+    struct queue_t *run_list = caller->running_list;
+    if (run_list->size == 0)
+    {
+        printf("No processes in the running list.\n");
+        return -1; // Error: No processes in the running list
+    }
+
+    // kill run-list
+    for (i = 0; i < run_list->size; i++)
+    {
+        // pick process from the list
+        struct pcb_t *proc = run_list->proc[i];
+        if (proc == NULL)
+            continue;
+        if (strcmp(proc->path, proc_name) == 0)
         {
-            struct pcb_t *proc = run_list->proc[i];
-            if (proc != NULL && strcmp(proc->path, proc_name) == 0)
-            {
-/* Free memory resources if we're using paging */
+
 #ifdef MM_PAGING
-                if (proc->mm != NULL)
-                {
-                    free_pcb_memph(proc);
-                }
+            if (proc->mm != NULL)
+                free_pcb_memph(proc);
 #endif
+            count++;
+            // free memory resources
+            proc = NULL;
 
-                /* Mark process as terminated */
-                // proc->pid = 0; // Assuming 0 is invalid PID
-
-                count++;
-                proc = NULL; // Mark the process as NULL
-                
-                /* Remove terminated process from the list by shifting elements */
-                for (int j = i; j < run_list->size - 1; j++)
-                {
-                    run_list->proc[j] = run_list->proc[j + 1];
-                }
-                run_list->size--;
-                i--;
+            /* Shift run list */
+            for (int j = i; j < run_list->size - 1; j++)
+            {
+                run_list->proc[j] = run_list->proc[j + 1];
             }
+            run_list->size--;
+            i--;
         }
     }
 
 #ifdef MLQ_SCHED
-    /* Find and terminate processes in multi-level queues */
+    /* MLQ kill */
     if (caller->mlq_ready_queue == NULL)
     {
-        printf("No multi-level queue found.\n");
-        return count;
+        printf("No MLQ ready queue found.\n");
+        return -1; // Error: No MLQ ready queue
     }
-    /* Traverse each priority queue */
+    
+    // kill mlq
     for (int prio = 0; prio < MAX_PRIO; prio++)
     {
-        struct queue_t *queue = &caller->mlq_ready_queue[prio];
-        if (queue == NULL)
-            continue;
-        /* Traverse the processes in the current queue */
+        struct queue_t *queue = &caller->mlq_ready_queue[prio]; if (queue == NULL) continue;
         for (i = 0; i < queue->size; i++)
         {
-            struct pcb_t *proc = queue->proc[i]; // pick the process
-            if (proc == NULL)
-                continue; // skip if NULL
-            // Main action
+            struct pcb_t *proc = queue->proc[i]; if (proc == NULL) continue;
             if (strcmp(proc->path, proc_name) == 0)
             {
-
-/* Free memory resources if we're using paging */
+/* Free memory resources */
 #ifdef MM_PAGING
-                if (proc->mm != NULL)
-                {
-                    free_pcb_memph(proc);
-                }
+                if (proc->mm != NULL) free_pcb_memph(proc);
 #endif
 
                 /* Mark process as terminated */
-                // proc->pid = 0;
+                proc = NULL;
                 count++;
-
                 /* Remove terminated process from the queue */
                 for (int j = i; j < queue->size - 1; j++)
                 {
@@ -130,43 +126,36 @@ int __sys_killall(struct pcb_t *caller, struct sc_regs *regs)
             }
         }
     }
-#else
-    if (caller->ready_queue == NULL)
-    {
-        printf("No ready queue found.\n");
-        return count;
-    }
-    /* Traverse the processes in the ready queue */
-    struct queue_t *ready_q = caller->ready_queue;
-    for (i = 0; i < ready_q->size; i++)
-    {
-        struct pcb_t *proc = ready_q->proc[i];
-        if (proc != NULL && strcmp(proc->path, proc_name) == 0)
-        {
 
-/* Free memory resources */
+#else
+    /* Find and terminate processes in the ready queue */
+    if (caller->ready_queue != NULL)
+    {
+        struct queue_t *ready_q = caller->ready_queue; if (ready_q == NULL) return -1; // Error: No ready queue
+        for (i = 0; i < ready_q->size; i++)
+        {
+            struct pcb_t *proc = ready_q->proc[i]; if (proc == NULL) continue;
+            if (strcmp(proc->path, proc_name) == 0)
+            {
 #ifdef MM_PAGING
-            if (proc->mm != NULL)
-                free_pcb_memph(proc);
+                if (proc->mm != NULL) free_pcb_memph(proc);
 #endif
 
-            /* Mark process as terminated */
-            // proc->pid = 0;
-            count++;
-            proc = NULL; // Mark the process as NULL
-            
-            /* Remove terminated process from the queue */
-            for (int j = i; j < ready_q->size - 1; j++)
-            {
-                ready_q->proc[j] = ready_q->proc[j + 1];
+                proc = NULL;
+                count++;
+
+                /* Shift */
+                for (int j = i; j < ready_q->size - 1; j++)
+                {
+                    ready_q->proc[j] = ready_q->proc[j + 1];
+                }
+                ready_q->size--;
+                i--;
             }
-            ready_q->size--;
-            i--;
         }
     }
-
 #endif
 
-    printf("Total processes terminated: %d\n", count);
-    return count;
+    printf("Total %d processes with name \"%s\" terminated.\n", count, proc_name);
+    return count; 
 }
