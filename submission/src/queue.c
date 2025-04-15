@@ -9,6 +9,7 @@ int empty(struct queue_t * q) {
 
 void enqueue(struct queue_t * q, struct pcb_t * proc) {
     /* Thêm tiến trình mới vào hàng đợi [q] nếu chưa đầy */
+    if (q == NULL || proc == NULL) return; // Kiểm tra con trỏ hợp lệ
     if (q->size < MAX_QUEUE_SIZE) {
         q->proc[q->size++] = proc; // Gán tiến trình vào vị trí cuối hàng và tăng size
     }
