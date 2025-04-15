@@ -69,9 +69,11 @@ int __sys_killall(struct pcb_t *caller, struct sc_regs *regs)
 #endif
 
                 /* Mark process as terminated */
-                proc->pid = 0; // Assuming 0 is invalid PID
-                count++;
+                // proc->pid = 0; // Assuming 0 is invalid PID
 
+                count++;
+                proc = NULL; // Mark the process as NULL
+                
                 /* Remove terminated process from the list by shifting elements */
                 for (int j = i; j < run_list->size - 1; j++)
                 {
@@ -129,35 +131,40 @@ int __sys_killall(struct pcb_t *caller, struct sc_regs *regs)
         }
     }
 #else
-    /* Find and terminate processes in the ready queue */
-    if (caller->ready_queue != NULL)
+    if (caller->ready_queue == NULL)
     {
-        struct queue_t *ready_q = caller->ready_queue;
-        for (i = 0; i < ready_q->size; i++)
+        printf("No ready queue found.\n");
+        return count;
+    }
+    /* Traverse the processes in the ready queue */
+    struct queue_t *ready_q = caller->ready_queue;
+    for (i = 0; i < ready_q->size; i++)
+    {
+        struct pcb_t *proc = ready_q->proc[i];
+        if (proc != NULL && strcmp(proc->path, proc_name) == 0)
         {
-            struct pcb_t *proc = ready_q->proc[i];
-            if (proc != NULL && strcmp(proc->path, proc_name) == 0)
-            {
 
 /* Free memory resources */
 #ifdef MM_PAGING
-                if (proc->mm != NULL) free_pcb_memph(proc);
+            if (proc->mm != NULL)
+                free_pcb_memph(proc);
 #endif
 
-                /* Mark process as terminated */
-                // proc->pid = 0;
-                count++;
-
-                /* Remove terminated process from the queue */
-                for (int j = i; j < ready_q->size - 1; j++)
-                {
-                    ready_q->proc[j] = ready_q->proc[j + 1];
-                }
-                ready_q->size--;
-                i--;
+            /* Mark process as terminated */
+            // proc->pid = 0;
+            count++;
+            proc = NULL; // Mark the process as NULL
+            
+            /* Remove terminated process from the queue */
+            for (int j = i; j < ready_q->size - 1; j++)
+            {
+                ready_q->proc[j] = ready_q->proc[j + 1];
             }
+            ready_q->size--;
+            i--;
         }
     }
+
 #endif
 
     printf("Total processes terminated: %d\n", count);
