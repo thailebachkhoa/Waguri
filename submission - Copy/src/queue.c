@@ -46,6 +46,6 @@ struct pcb_t *dequeue(struct queue_t *q)
 
     q->size--; // Giảm kích thước hàng đợi sau khi loại bỏ phần tử
 
-    p_thread_mutex_unlock(&queue_lock); // Mở khóa mutex sau khi truy cập hàng đợi
-    return proc;                        // Trả về tiến trình đã lấy ra
+    pthread_mutex_unlock(&queue_lock); // Mở khóa mutex sau khi truy cập hàng đợi
+    return proc;                       // Trả về tiến trình đã lấy ra
 }
