@@ -92,7 +92,7 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
   /*Attempt to increate limit to get space */
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
   
-  int size = PAGING_PAGE_ALIGNSZ(size);
+  int inc_sz = PAGING_PAGE_ALIGNSZ(size);
   // int inc_limit_ret;
   
   /* TODO retrive old_sbrk if needed, current comment out due to compiler redundant warning*/
@@ -104,25 +104,24 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
  struct sc_regs regs;
  regs.a1 = SYSMEM_INC_OP;
  regs.a2 = vmaid;
- regs.a3 = size; 
+ regs.a3 = inc_sz; // size mở rộng
  
  /* SYSCALL 17 sys_memmap */
  regs.orig_ax = 17;
- if (syscall(caller, regs.orig_ax, &regs) != 0) 
-  {
-    regs.flags = -1;                   
-    perror("failed to increase limit");
-    pthread_mutex_unlock(&mmvm_lock);  
-    return -1;
-  }
-  regs.flags = 0; // successful
+ if (syscall(caller, regs.orig_ax, &regs) != 0) {
+  regs.flags = -1;
+  perror("Failed to increase limit");
+  pthread_mutex_unlock(&mmvm_lock);
+  return -1;
+}
+
+  regs.flags = 0; 
 
   /* TODO: commit the limit increment */
-  caller->mm->symrgtbl[rgid].rg_start = old_sbrk;        
-  caller->mm->symrgtbl[rgid].rg_end = old_sbrk + size; 
+  caller->mm->symrgtbl[rgid].rg_start = old_sbrk;   
+  caller->mm->symrgtbl[rgid].rg_end = old_sbrk + inc_sz;
 
   /* TODO: commit the allocation address */
-  // *alloc_addr = caller->mm->symrgtbl[rgid].rg_end - size;
   *alloc_addr = old_sbrk;
   pthread_mutex_unlock(&mmvm_lock); //
   return 0;
